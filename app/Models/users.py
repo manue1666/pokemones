@@ -1,36 +1,19 @@
 from app import mongo
+from app.Models.super_clase import SuperClass
 
-class User:
-    collection = mongo.db.users
+class User(SuperClass):
+    def __init__(self):
+        super().__init__("users")
 
-    @staticmethod
-    def find_all():
-        users = User.collection.find()
-        return list(users)
+    def create(self,data):
+       pass 
     
-    @staticmethod
-    def find_by_id(user_id):
-        user = User.collection.find_one({
-            "_id":user_id
-        })
-        return user
+    def delete(self, object_id):
+       pass 
     
-    @staticmethod
-    def create(data):
-        user= User.collection.insert_one(data)
-        return user
+    def update(self,object_id,data):
+        pass
+
+    def find_all(self):
+        raise NotImplementedError("no es necesario traer los usuarios")
     
-    @staticmethod
-    def update(user_id,data):
-        user= User.collection.update_one({
-            "_id":user_id
-        },{
-            "$set":data
-        })
-        return user
-    
-    @staticmethod
-    def delete(user_id):
-        return User.collection.delete_one({
-            "_id":user_id
-        })
