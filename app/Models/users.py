@@ -17,3 +17,6 @@ class User(SuperClass):
     def find_all(self):
         raise NotImplementedError("no es necesario traer los usuarios")
     
+    def get_by_email_password(self, email, password):
+        user = self.collection.find_one({"email":email,"password":password})
+        return user
