@@ -19,4 +19,5 @@ class User(SuperClass):
     
     def get_by_email_password(self, email, password):
         user = self.collection.find_one({"email":email,"password":password})
+        user["_id"] = str(user["_id"])
         return user

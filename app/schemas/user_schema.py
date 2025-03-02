@@ -1,7 +1,7 @@
 from marshmallow import Schema, fields, ValidationError
 
 class UserSchema(Schema):
-    name = fields.str(
+    name = fields.Str(
         required=True,
         validate =lambda x: len(x)>0,
         error_massages={
@@ -9,7 +9,7 @@ class UserSchema(Schema):
         }
     )
 
-    password = fields.str(
+    password = fields.Str(
         required=True,
         validate =lambda x: len(x)>0,
         error_massages={
@@ -17,7 +17,7 @@ class UserSchema(Schema):
         }
     )
 
-    email = fields.str(
+    email = fields.Email(
         required=True,
         validate =lambda x: "@utma.edu.mx" in x,
         error_massages={

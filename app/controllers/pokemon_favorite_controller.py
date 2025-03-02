@@ -1,34 +1,41 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request
 from app.schemas.favPokemon_schema import favPokemonSchema
-from marshmallow import ValidationError
 from app.Models.factory import ModelFactory
+from app.tools.response_manager import responseManager
+from marshmallow import ValidationError
 from bson import ObjectId
+from flask_jwt_extended import jwt_required, get_jwt_identity
 
-bp = Blueprint("favorite_pokemons",__name__,url_prefix="/favorite_pokemon")
-favorite_pokemon = favPokemonSchema()
-favorite_pokemon_model = ModelFactory.get_model("pokemon_favorites")
+RM = responseManager()
+bp = Blueprint("pokemon_favorites", __name__, url_prefix="/pokemon_favorites")
+pokemon_favorite_schema = favPokemonSchema()
+pokemon_favorite_model = ModelFactory.get_model("pokemon_favorites")
 
-@bp.route("/add_favorite_pokemon",methods=["POST"])
-def add_favorite_pokemon():
-    data = request.json
-    pokemon_id = data.get("pokemon_id", None)
-    user_id = data.get("user_id", None)
-    if not pokemon_id and not user_id:
-        return jsonify("no se pudo añadir",400)
-    return jsonify(pokemon_id,200)
 
+@bp.route("/", methods=["POST"])
+@jwt_required()
+def create():
+    try:
+        #data = pokemon_favorite_schema.load(request.json)
+        data = request.json
+        data = pokemon_favorite_schema.load(data)
+        pokemon_id= pokemon_favorite_model.create(data)
+        return RM.success({"pokemon_id":str(pokemon_id)})
     
-@bp.route("/delete_favorite_pokemon/<string:user_id,pokemon_id>", methods=["DELETE"])
-def delete_favorite_pokemon(user_id,pokemon_id):
-    favorite_pokemon_model.delete(ObjectId(user_id,pokemon_id))
-    return jsonify("pokemon eliminado de favoritos", 200)
+    except ValidationError as err:
+        print(err)
+        return RM.error("Los parametros enviados son ncorrectos")
+    
+    
+@bp.route("/delete_pokemon/<string:pokemon_id>", methods=["DELETE"])
+@jwt_required()
+def delete(pokemon_id):
+    pokemon_favorite_model.delete(ObjectId(pokemon_id))
+    return RM.success("Pokemon eliminado con exito")
 
-@bp.route("/get_favorite_pokemons/<string:user_id>", methods=["GET"])
-def get_user(user_id):
-    fav_pokemon_model= favorite_pokemon_model.find(ObjectId(user_id))
-    return jsonify(fav_pokemon_model,200)
-
-#crea
-#elimina
-#get all
-#modificar clase del modelo y evitar que se usen metodos indebidos
+@bp.route("/get_pokemons/", methods=["GET"])
+@jwt_required()
+def get_all(user_id):
+    user_id = get_jwt_identity()
+    pokemon = pokemon_favorite_model.find_all(user_id)
+    return RM.success(pokemon)
