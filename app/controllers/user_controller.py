@@ -22,34 +22,60 @@ def login():
     password = data.get("password", None)
     if not email or not password:
         return RM.error("Es necesario enviar todas las credenciales")
-    user = user_model.get_by_email_password(email, password)
+    
+    user = user_model.get_by_email_password(email)
     if not user:
-        return RM.error("No se encontro el usuario")
+        return RM.error("No se encontró el usuario")
+    
     if not EM.compare_hashes(password, user["password"]):
-        return RM.error("Credenciales invalidas")
-    return RM.success({"user": user, "token":create_access_token(user["_id"])})
+        return RM.error("Credenciales inválidas")
+    
+    return RM.success({
+        "user_id": user["_id"],
+        "token": create_access_token(user["_id"])
+    })
+
 
 @bp.route("/register", methods=["POST"])
 def register():
     try:
-        data = user_schema.load(request.json)
-        data["password"] = EM.create_hash(data["passwords"])
-        user_id= user_model.create(data)
-        return RM.success({"user_id":str(user_id), "token":create_access_token(str[user_id])})
-    
+        data = user_schema.load(request.json, partial=False)  # require todos los campos para registro
+        data["password"] = EM.create_hash(data["password"])
+        user_id = user_model.create(data)
+        return RM.success({"user_id": str(user_id), "token": create_access_token(str(user_id))})
     except ValidationError as error:
-        return RM.error("Los parametros enviados son incorrectos")    
+        return RM.error("Los parámetros enviados son incorrectos")
+    
+
 
 @bp.route("/update", methods=["PUT"])
 @jwt_required()
 def update():
-    user_id = get_jwt_identity
+    user_id = get_jwt_identity()
     try:
-        data = user_schema.load(request.json)
-        user = user_model.update(ObjectId(user_id), data)
-        return RM.success({"data": user})
-    except ValidationError as err:
-        return RM.error("Los parametros enviados son incorrectos")
+        data = user_schema.load(request.json, partial=True)  # permite la validación parcial
+        current_user = user_model.find_by_id(ObjectId(user_id))
+        if not current_user:
+            return RM.error("Usuario no encontrado")
+        
+        # Actualizar solo los campos especificados
+        updated_data = {}
+        if "name" in data:
+            updated_data["name"] = data["name"]
+        if "email" in data:
+            updated_data["email"] = data["email"]
+        
+        result = user_model.update(ObjectId(user_id), updated_data)
+        if result.modified_count > 0:
+            updated_user = user_model.find_by_id(ObjectId(user_id))
+            return RM.success({"data": updated_user})
+        else:
+            return RM.error("No se realizaron cambios")
+    except ValidationError as error:
+        print(error.messages)  # mensaje de error
+        return RM.error("Los parámetros enviados son incorrectos")
+
+
     
 @bp.route("/delete", methods=["DELETE"])
 @jwt_required()

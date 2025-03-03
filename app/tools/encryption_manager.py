@@ -6,4 +6,4 @@ class EncryptionManager:
         return bcrypt.hashpw(text.encode("utf-8"),salt).decode("utf-8")
     
     def compare_hashes(self,text,hashpw):
-        return bcrypt.checkpw(text.encode("utf-8"), hashpw.encoded("utf-8"))
+        return bcrypt.checkpw(text.encode("utf-8"), hashpw.encode("utf-8"))
