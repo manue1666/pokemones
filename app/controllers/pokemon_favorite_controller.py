@@ -15,12 +15,13 @@ pokemon_favorite_model = ModelFactory.get_model("pokemon_favorites")
 @bp.route("/", methods=["POST"])
 @jwt_required()
 def create():
+    user_id=get_jwt_identity()
     try:
         #data = pokemon_favorite_schema.load(request.json)
         data = request.json
-        data = pokemon_favorite_schema.load(data)
+        data["user_id"] = user_id
         pokemon_id= pokemon_favorite_model.create(data)
-        return RM.success({"pokemon_id":str(pokemon_id)})
+        return RM.success({"_id":pokemon_id})
     
     except ValidationError as err:
         print(err)
@@ -35,7 +36,7 @@ def delete(pokemon_id):
 
 @bp.route("/get_pokemons/", methods=["GET"])
 @jwt_required()
-def get_all(user_id):
+def get_all():
     user_id = get_jwt_identity()
     pokemon = pokemon_favorite_model.find_all(user_id)
     return RM.success(pokemon)
