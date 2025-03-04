@@ -80,13 +80,13 @@ def update():
 @bp.route("/delete", methods=["DELETE"])
 @jwt_required()
 def delete():
-    user_id = get_jwt_identity
+    user_id = get_jwt_identity()
     user_model.delete(ObjectId(user_id))
     return RM.success("Usuario eliminado con exito")
 
 @bp.route("/get", methods=["GET"])
 @jwt_required()
 def get_user():
-    user_id = get_jwt_identity
+    user_id = get_jwt_identity()
     user = user_model.find_by_id(ObjectId(user_id))
     return RM.success(user)
