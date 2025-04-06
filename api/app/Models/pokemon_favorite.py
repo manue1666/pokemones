@@ -15,8 +15,10 @@ class PokemonFavorites(SuperClass):
         raise NotImplementedError("no puedes traer un pokemon")
     
     def find_all(self, user_id):
-        data = self.collection.find({"user_id": user_id})
+        data = self.collection.find({"user_id": ObjectId(user_id)})
+
         return list(data)
+
 
     def create(self,data):
         data["user_id"] = ObjectId(data["user_id"])
