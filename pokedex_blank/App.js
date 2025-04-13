@@ -9,6 +9,7 @@ import Home from './components/home';
 
 import EditUser from './components/editUser';
 import ForgotPassword from './components/forgotPass';
+import UniquePokemon from './components/uniquePokemon';
 
 const Stack = createNativeStackNavigator();
 
@@ -42,6 +43,12 @@ function App() {
           name='ForgotP'
           component={ForgotPassword}
           options={{ title: "recuperar contraseña" }} />
+
+        <Stack.Screen
+          name='UniquePokemon'
+          component={UniquePokemon}
+          options={{ headerShown: false }} />
+
       </Stack.Navigator>
     </NavigationContainer>
   );

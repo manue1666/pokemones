@@ -1,8 +1,34 @@
-import { Button, Image, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Button, Image, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { request } from '../requests';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useState } from 'react';
+import { useEffect } from 'react';
+
+
+const Profile = ({ navigation }) => {
+    const [userData, setUserData] = useState({ name: '', email: '' })
+
+    useEffect(() => {
+        const jalarDatos = async () => {
+            try {
+                
+                const res = await request.get("/users/get")
+                const { name, email } = res.data
+                // console.log(name)
+                // console.log(email)
+                setUserData({ name, email })
+            } catch (error) {
+                console.error(error)
+                Alert.alert("Hubo un error", "Credenciales inválidas")
+            }
+        };
+        jalarDatos()
+
+    }, []);
 
 
 
-const Profile = ({navigation}) => {
+
     return (
         <View style={styles.container}>
             {/* //container image */}
@@ -18,10 +44,10 @@ const Profile = ({navigation}) => {
                 <Text style={styles.title}>Datos</Text>{/* //title */}
 
                 <Text style={styles.label}>Nombre:</Text>{/* //label */}
-                <Text style={styles.datos}>Nuncio</Text>
+                <Text style={styles.datos}>{userData.name}</Text>
 
                 <Text style={styles.label}>Correo:</Text>{/* //label */}
-                <Text style={styles.datos}>utm23090708@utma.edu.mx</Text>
+                <Text style={styles.datos}>{userData.email}</Text>
 
 
                 <Pressable style={styles.send} onPress={() => navigation.navigate('EditUser')}>
@@ -48,13 +74,13 @@ const styles = StyleSheet.create({
         fontSize: 30,
         fontWeight: "bold",
         margin: 15,
-        marginLeft:100
+        marginLeft: 50
     },
-    datos:{
-        fontSize:20,
-        fontWeight:"bold",
-        margin:10,
-        color:"gray"
+    datos: {
+        fontSize: 20,
+        fontWeight: "bold",
+        margin: 10,
+        color: "gray"
     },
     label: {
         fontSize: 20,

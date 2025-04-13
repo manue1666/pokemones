@@ -6,28 +6,62 @@ class PokemonFavorites(SuperClass):
     def __init__(self):
         super().__init__("pokemon_favorites")
 
-    
-    def update(self,object_id,data):
-        raise NotImplementedError("no puedes updatear pokemons")
+    def update(self, object_id, data):
+        raise NotImplementedError("No puedes actualizar pokémones favoritos")
 
-    
-    def find_by_id(self,object_id):
-        raise NotImplementedError("no puedes traer un pokemon")
+    def find_by_id(self, object_id):
+        raise NotImplementedError("No puedes buscar un pokémon favorito por ID")
     
     def find_all(self, user_id):
-        data = self.collection.find({"user_id": ObjectId(user_id)})
+        try:
+            pipeline = [
+                {
+                    "$match": {
+                        "user_id": ObjectId(user_id)
+                    }
+                },
+                {
+                    "$lookup": {
+                        "from": "pokemons",
+                        "localField": "pokemon_id",
+                        "foreignField": "_id",
+                        "as": "pokemon"
+                    }
+                },
+                {"$unwind": "$pokemon"},
+                {
+                    "$lookup": {
+                        "from": "users",
+                        "localField": "user_id",
+                        "foreignField": "_id",
+                        "as": "user"
+                    }
+                },
+                {"$unwind": "$user"},
+                {
+                    "$project": {
+                        "pokemon": 1,
+                        "user": {
+                            "_id": 1,
+                            "name": 1,
+                            "email": 1
+                        }
+                    }
+                }
+            ]
+            
+            return list(self.collection.aggregate(pipeline))
+            
+        except Exception as e:
+            print(f"Error en find_all: {str(e)}")
+            raise e
 
-        return list(data)
-
-
-    def create(self,data):
-        data["user_id"] = ObjectId(data["user_id"])
-        data["pokemon_id"] = ObjectId(data["pokemon_id"])
-        datum= self.collection.insert_one(data)
-        return str(datum.inserted_id)
-    
-
-#crea
-#elimina
-#get all
-#get one
+    def create(self, data):
+        try:
+            data["user_id"] = ObjectId(data["user_id"])
+            data["pokemon_id"] = ObjectId(data["pokemon_id"])
+            result = self.collection.insert_one(data)
+            return str(result.inserted_id)
+        except Exception as e:
+            print(f"Error en create: {str(e)}")
+            raise e

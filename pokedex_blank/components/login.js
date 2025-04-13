@@ -1,7 +1,34 @@
-import { Button, Image, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Button, Image, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { request } from '../requests';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useState } from 'react';
 
 const Login = ({ navigation }) => {
 
+  const [data, setData] = useState({});
+
+  const onChange = (target,value)=>{
+    const newData = data;
+    newData[target]=value;
+    setData(newData)
+  }
+
+  const submit = async ()=>{
+    try {
+      const res = await request.post("/users/login",data);
+      //res.data me da "token" y "user_id"
+      const { token, user_id } = res.data;
+      console.log(token)
+      console.log(user_id)
+      AsyncStorage.setItem("token",token)
+      AsyncStorage.setItem("user_id",user_id)
+
+      navigation.navigate('Home')
+      Alert.alert("Exito", "sesion iniciada con exito")
+    } catch (error) {
+      Alert.alert("hubo un error","credenciales invalidas")
+    }
+  }
 
   return (
     <View style={styles.container}>
@@ -21,15 +48,17 @@ const Login = ({ navigation }) => {
         <TextInput
           style={styles.input}
           placeholder="Ingresa tu correo"
+          onChangeText={(text) => onChange("email", text)}
         />
 
         <Text style={styles.label}>Contraseña:</Text>{/* //label */}
         <TextInput
           style={styles.input}
           placeholder="Ingresa tu contraseña"
+          onChangeText={(text) => onChange("password", text)}
           secureTextEntry={true}
         />
-        <Pressable style={styles.send} onPress={() => navigation.navigate('Home')}>
+        <Pressable style={styles.send} onPress={submit}>
           <Text style={styles.textButton}>Login</Text>
         </Pressable>
 

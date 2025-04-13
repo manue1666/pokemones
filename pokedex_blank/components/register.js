@@ -1,7 +1,32 @@
-import { Button, Image, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Button, Image, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { request } from '../requests';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useState } from 'react';
 
 
-const Register = ()=>{
+
+const Register = ({ navigation }) => {
+
+  const [data, setData] = useState({});
+
+  const onChange = (target,value)=>{
+    const newData = data;
+    newData[target]=value;
+    setData(newData)
+  }
+
+  const submit = async ()=>{
+    try {
+      const res = await request.post("/users/register",data);
+      const { token } = res.data;
+      AsyncStorage.setItem("token",token)
+      navigation.navigate('Login')
+      Alert.alert("Exito", "el usuario se creo con exito")
+    } catch (error) {
+      Alert.alert("hubo un error","credenciales invalidas")
+    }
+  }
+
   return (
     <View style={styles.container}>
       {/* //container image */}
@@ -20,22 +45,25 @@ const Register = ()=>{
         <TextInput
           style={styles.input}
           placeholder="Ingresa username"
+          onChangeText={(text) => onChange("name", text)}
         />
 
         <Text style={styles.label}>Correo:</Text>{/* //label */}
         <TextInput
           style={styles.input}
           placeholder="Ingresa tu correo"
+          onChangeText={(text) => onChange("email", text)}
         />
 
         <Text style={styles.label}>Contraseña:</Text>{/* //label */}
         <TextInput
           style={styles.input}
           placeholder="Ingresa tu contraseña"
+          onChangeText={(text) => onChange("password", text)}
           secureTextEntry={true}
         />
 
-        <Pressable style={styles.send} onPress={() => alert("funciona el fokin boton")}>
+        <Pressable style={styles.send} onPress={submit}>
           <Text style={styles.textButton}>Send</Text>
         </Pressable>
 
@@ -58,7 +86,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 30,
     fontWeight: "bold",
-    margin:15
+    margin: 15
   },
   label: {
     fontSize: 20,
@@ -79,7 +107,7 @@ const styles = StyleSheet.create({
     marginTop: 15,
     alignItems: "center",
     paddingVertical: 10,
-    
+
   },
   textButton: {
     color: "white",

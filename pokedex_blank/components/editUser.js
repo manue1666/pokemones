@@ -1,7 +1,35 @@
-import { Button, Image, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Button, Image, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { request } from '../requests';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useState } from 'react';
+import { useEffect } from 'react';
 
+const EditUser = ({ navigation }) => {
 
-const EditUser = () => {
+    const [data, setData] = useState({});
+
+    const onChange = (target, value) => {
+        const newData = data;
+        newData[target] = value;
+        setData(newData)
+    }
+
+    const submit = async () => {
+        try {
+            const token = await AsyncStorage.getItem("token")
+            if (!token) {
+                Alert.alert("Error", "No se encontró token de autenticación");
+                return;
+            }
+            const res = await request.put("/users/update", data);
+            console.log(res.data)
+            navigation.navigate("Home")
+            Alert.alert("Exito", "el usuario se edito con exito")
+        } catch (error) {
+            Alert.alert("hubo un error", "credenciales invalidas")
+        }
+    }
+
     return (
         <View style={styles.container}>
             {/* //container image */}
@@ -20,22 +48,18 @@ const EditUser = () => {
                 <TextInput
                     style={styles.input}
                     placeholder="Ingresa nuevo username"
+                    onChangeText={(text) => onChange("name", text)}
                 />
 
                 <Text style={styles.label}>Correo:</Text>{/* //label */}
                 <TextInput
                     style={styles.input}
                     placeholder="Ingresa nuevo correo"
+                    onChangeText={(text) => onChange("email", text)}
                 />
 
-                <Text style={styles.label}>Contraseña:</Text>{/* //label */}
-                <TextInput
-                    style={styles.input}
-                    placeholder="Ingresa nueva contraseña"
-                    secureTextEntry={true}
-                />
 
-                <Pressable style={styles.send} onPress={() => alert("funciona el fokin boton")}>
+                <Pressable style={styles.send} onPress={submit}>
                     <Text style={styles.textButton}>Send</Text>
                 </Pressable>
 
